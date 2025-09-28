@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Zap, Wallet } from 'lucide-react';
+import { Lightning, Wallet } from 'phosphor-react';
 
 export default function Header() {
   return (
@@ -15,9 +15,9 @@ export default function Header() {
         <div className="flex items-center justify-between h-20">
           {/* Left side - Logo */}
           <div className="flex items-center space-x-4" style={{ marginLeft: '15px' }}>
-            <div className="w-6 h-7 bg-white rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-3 text-neutral-950" />
-            </div>
+                   <div className="w-6 h-7 bg-white rounded-lg flex items-center justify-center">
+                     <Lightning size={16} weight="bold" className="text-neutral-950" />
+                   </div>
             <h1 className="text-2xl font-semibold text-white" style={{ marginLeft: '2px' }}>
               DomainFi
             </h1>
@@ -39,13 +39,13 @@ export default function Header() {
               ))}
             </nav>
             
-            <button 
-              className="bg-white text-neutral-950 rounded-lg font-semibold hover:bg-neutral-100 transition-colors duration-200 flex items-center space-x-2"
-              style={{ paddingLeft: '9px', paddingRight: '9px', paddingTop: '7px', paddingBottom: '7px' }}
-            >
-              <Wallet className="w-4 h-4" />
-              <span>Connect Wallet</span>
-            </button>
+                   <button 
+                     className="bg-white text-neutral-950 rounded-lg font-semibold hover:bg-neutral-100 transition-colors duration-200 flex items-center space-x-2"
+                     style={{ paddingLeft: '12px', paddingRight: '12px', paddingTop: '8px', paddingBottom: '8px' }}
+                   >
+                     <Wallet size={16} weight="bold" />
+                     <span className="text-sm font-semibold tracking-wide">Connect Wallet</span>
+                   </button>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, BarChart3, TrendingUp } from 'lucide-react';
+import { Globe, ChartBar, TrendUp } from 'phosphor-react';
 import { getScoreInterpretation, getScoreColor } from '@/lib/scoring';
 
 interface DomainResultsProps {
@@ -26,10 +26,10 @@ export default function DomainResults({ domainData }: DomainResultsProps) {
               >
                 <div className="bg-neutral-900 border border-neutral-700 rounded-2xl p-8">
                   <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                        <Globe className="w-6 h-6 text-neutral-950" />
-                      </div>
+                           <div className="flex items-center space-x-4">
+                             <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                               <Globe size={24} weight="bold" className="text-neutral-950" />
+                             </div>
                       <div>
                         <h3 className="text-2xl font-bold text-white">
                           {domainData.domain.id}
@@ -67,10 +67,10 @@ export default function DomainResults({ domainData }: DomainResultsProps) {
                   {/* Domain Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-6">
-                      <h4 className="font-semibold text-white mb-4 flex items-center space-x-2">
-                        <BarChart3 className="w-5 h-5" />
-                        <span>Domain Information</span>
-                      </h4>
+                             <h4 className="font-semibold text-white mb-4 flex items-center space-x-2">
+                               <ChartBar size={20} weight="bold" />
+                               <span>Domain Information</span>
+                             </h4>
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-neutral-400">Created:</span>
@@ -88,10 +88,10 @@ export default function DomainResults({ domainData }: DomainResultsProps) {
                     </div>
 
                     <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-6">
-                      <h4 className="font-semibold text-white mb-4 flex items-center space-x-2">
-                        <TrendingUp className="w-5 h-5" />
-                        <span>Market Activity</span>
-                      </h4>
+                             <h4 className="font-semibold text-white mb-4 flex items-center space-x-2">
+                               <TrendUp size={20} weight="bold" />
+                               <span>Market Activity</span>
+                             </h4>
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-neutral-400">Sales Count:</span>
