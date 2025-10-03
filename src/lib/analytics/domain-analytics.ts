@@ -240,7 +240,7 @@ async function fetchActivityData(domainName: string) {
   
   try {
     const response = await graphqlClient.request(query, { name: domainName });
-    const activities = (response as any).nameActivities;
+    const activities = (response as { nameActivities: { totalCount: number; items: Array<{ createdAt: string }> } }).nameActivities;
     
     return {
       totalCount: activities.totalCount || 0,
@@ -260,7 +260,7 @@ async function fetchActivityData(domainName: string) {
 /**
  * Calculate comprehensive domain analytics
  */
-async function calculateDomainAnalytics(domainData: any, marketData: any, activityData: any): Promise<DomainAnalyticsData> {
+async function calculateDomainAnalytics(domainData: { name: string; tld: string; length: number; activeOffersCount: number; tokenizedAt: string }, marketData: { listings: unknown[]; offers: unknown[] }, activityData: { totalCount: number; items: unknown[]; lastActivity?: string | null }): Promise<DomainAnalyticsData> {
   const name = domainData.name;
   const tld = domainData.tld;
   const length = domainData.length;
@@ -365,7 +365,7 @@ function getRarityTier(score: number): string {
 /**
  * Calculate market value
  */
-function calculateMarketValue(domainData: any, marketData: any, activityData: any): string {
+function calculateMarketValue(domainData: { name: string; tld: string; length: number; activeOffersCount: number }, marketData: { latestListingPrice?: string; listings: unknown[] }, activityData: { totalCount: number }): string {
   // If domain has a listing price, use it
   if (marketData.latestListingPrice) {
     const priceInETH = parseFloat(marketData.latestListingPrice) / 1e18;
@@ -386,7 +386,7 @@ function calculateMarketValue(domainData: any, marketData: any, activityData: an
 /**
  * Calculate 24h volume
  */
-function calculateVolume24h(activityData: any): string {
+function calculateVolume24h(activityData: { totalCount: number }): string {
   const baseVolume = activityData.totalCount * 25;
   return `$${baseVolume}`;
 }
@@ -394,7 +394,7 @@ function calculateVolume24h(activityData: any): string {
 /**
  * Calculate 24h price change
  */
-function calculatePriceChange24h(marketData: any, activityData: any): number {
+function calculatePriceChange24h(marketData: { offers: unknown[] }, activityData: { totalCount: number }): number {
   const activityCount = activityData.totalCount;
   const offersCount = marketData.offers.length;
   
@@ -467,14 +467,14 @@ async function fetchRealPriceHistory(domainName: string): Promise<Array<{ date: 
   try {
     const sld = domainName.split('.')[0];
     const response = await graphqlClient.request(query, { name: domainName, sld });
-    const activities = (response as any).nameActivities.items || [];
-    const listings = (response as any).listings.items || [];
+    const activities = (response as { nameActivities: { items: Array<{ price?: string; createdAt: string }> } }).nameActivities.items || [];
+    const listings = (response as { listings: { items: Array<{ price: string; createdAt: string }> } }).listings.items || [];
     
     // Combine activities and listings with prices
-    const priceData = [];
+    const priceData: Array<{ date: string; price: number }> = [];
     
     // Add activity prices
-    activities.forEach((activity: any) => {
+    activities.forEach((activity: { price?: string; createdAt: string }) => {
       if (activity.price && activity.createdAt) {
         priceData.push({
           date: activity.createdAt.split('T')[0],
@@ -484,7 +484,7 @@ async function fetchRealPriceHistory(domainName: string): Promise<Array<{ date: 
     });
     
     // Add listing prices
-    listings.forEach((listing: any) => {
+    listings.forEach((listing: { price: string; createdAt: string }) => {
       if (listing.price && listing.createdAt) {
         priceData.push({
           date: listing.createdAt.split('T')[0],
@@ -510,7 +510,7 @@ async function fetchRealPriceHistory(domainName: string): Promise<Array<{ date: 
 /**
  * Generate activity history with real data when available
  */
-async function generateActivityHistory(activityData: any, domainName: string): Promise<Array<{ date: string; activities: number }>> {
+async function generateActivityHistory(activityData: { totalCount: number; items: unknown[] }, domainName: string): Promise<Array<{ date: string; activities: number }>> {
   try {
     // Try to fetch real activity history first
     const realActivityHistory = await fetchRealActivityHistory(domainName);
@@ -557,12 +557,12 @@ async function fetchRealActivityHistory(domainName: string): Promise<Array<{ dat
   
   try {
     const response = await graphqlClient.request(query, { name: domainName });
-    const activities = (response as any).nameActivities.items || [];
+    const activities = (response as { nameActivities: { items: Array<{ createdAt: string }> } }).nameActivities.items || [];
     
     // Group activities by date
     const activityByDate: { [key: string]: number } = {};
     
-    activities.forEach((activity: any) => {
+    activities.forEach((activity: { createdAt: string }) => {
       if (activity.createdAt) {
         const date = activity.createdAt.split('T')[0];
         activityByDate[date] = (activityByDate[date] || 0) + 1;
@@ -593,7 +593,7 @@ async function fetchRealActivityHistory(domainName: string): Promise<Array<{ dat
 /**
  * Generate recent activities list with real data when available
  */
-async function generateRecentActivities(activityData: any, domainName: string): Promise<Array<{ type: string; date: string; price?: number }>> {
+async function generateRecentActivities(activityData: { totalCount: number; items: unknown[] }, domainName: string): Promise<Array<{ type: string; date: string; price?: number }>> {
   try {
     // Try to fetch real recent activities first
     const realActivities = await fetchRealRecentActivities(domainName);
@@ -647,10 +647,10 @@ async function fetchRealRecentActivities(domainName: string): Promise<Array<{ ty
   
   try {
     const response = await graphqlClient.request(query, { name: domainName });
-    const activities = (response as any).nameActivities.items || [];
+    const activities = (response as { nameActivities: { items: Array<{ type?: string; createdAt: string; price?: string }> } }).nameActivities.items || [];
     
     // Transform to our format
-    return activities.map((activity: any) => ({
+    return activities.map((activity: { type?: string; createdAt: string; price?: string }) => ({
       type: activity.type || 'unknown',
       date: activity.createdAt,
       price: activity.price ? parseFloat(activity.price) : undefined
@@ -664,7 +664,7 @@ async function fetchRealRecentActivities(domainName: string): Promise<Array<{ ty
 /**
  * Calculate total volume
  */
-function calculateTotalVolume(activityData: any): string {
+function calculateTotalVolume(activityData: { totalCount: number }): string {
   const volume = activityData.totalCount * 150;
   return `$${volume}`;
 }
@@ -672,7 +672,7 @@ function calculateTotalVolume(activityData: any): string {
 /**
  * Calculate average price
  */
-function calculateAveragePrice(activityData: any): string {
+function calculateAveragePrice(activityData: { totalCount: number }): string {
   const avgPrice = 800 + Math.random() * 800;
   return `$${Math.round(avgPrice)}`;
 }
@@ -680,7 +680,7 @@ function calculateAveragePrice(activityData: any): string {
 /**
  * Calculate highest price
  */
-function calculateHighestPrice(activityData: any): string {
+function calculateHighestPrice(activityData: { totalCount: number }): string {
   const highPrice = 1200 + Math.random() * 1000;
   return `$${Math.round(highPrice)}`;
 }
@@ -688,7 +688,7 @@ function calculateHighestPrice(activityData: any): string {
 /**
  * Calculate lowest price
  */
-function calculateLowestPrice(activityData: any): string {
+function calculateLowestPrice(activityData: { totalCount: number }): string {
   const lowPrice = 400 + Math.random() * 400;
   return `$${Math.round(lowPrice)}`;
 }
@@ -696,7 +696,7 @@ function calculateLowestPrice(activityData: any): string {
 /**
  * Analyze domain characteristics
  */
-function analyzeDomain(domainData: any, marketData: any, activityData: any, rarityScore: number) {
+function analyzeDomain(domainData: { name: string; tld: string; length: number; activeOffersCount: number }, marketData: { listings: unknown[]; offers: unknown[] }, activityData: { totalCount: number }, rarityScore: number) {
   const isPremium = domainData.length <= 5 || ['com', 'ai', 'eth'].includes(domainData.tld);
   const isShort = domainData.length <= 3;
   const isCryptoRelated = ['crypto', 'nft', 'web3', 'defi', 'dao', 'meta', 'btc', 'eth', 'sol'].some(term => 
@@ -752,7 +752,7 @@ function calculateMarketComparison(rarityScore: number, tld: string, length: num
 /**
  * Generate investment recommendations
  */
-function generateRecommendations(domainAnalysis: any, marketComparison: any) {
+function generateRecommendations(domainAnalysis: { investmentGrade: string; riskLevel: string; marketTrend: string }, marketComparison: unknown) {
   let buy = false;
   let sell = false;
   let hold = false;
