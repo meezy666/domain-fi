@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Lightning, CaretDown, X } from 'phosphor-react';
-import { fetchDomainData, isValidDomainName } from '@/lib/doma-api';
-import { calculateDomainScore } from '@/lib/scoring';
+import { isValidDomainName } from '@/lib/doma-api';
+import { TrendingDomains } from '@/components/TrendingDomains';
+import { fetchTrendingStats } from '@/lib/trending';
 
 interface SearchSectionProps {
   onDomainData: (data: any) => void;
@@ -12,12 +13,16 @@ interface SearchSectionProps {
 
 export default function SearchSection({ onDomainData }: SearchSectionProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [popularDomains, setPopularDomains] = useState<string[]>([]);
   const [filteredDomains, setFilteredDomains] = useState<string[]>([]);
   const [justSelected, setJustSelected] = useState(false);
+  const [quickStats, setQuickStats] = useState({
+    totalDomains: '2.5M+',
+    totalVolume: '$847M',
+    accuracyRate: '98.5%'
+  });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +36,27 @@ export default function SearchSection({ onDomainData }: SearchSectionProps) {
     ];
     setPopularDomains(domains);
     setFilteredDomains(domains.slice(0, 6)); // Show top 6 initially
+  }, []);
+
+  // Fetch real trending stats for Quick Stats section
+  useEffect(() => {
+    const loadQuickStats = async () => {
+      try {
+        const stats = await fetchTrendingStats();
+        if (stats) {
+          setQuickStats({
+            totalDomains: `${stats.totalDomains}+`,
+            totalVolume: stats.totalVolume,
+            accuracyRate: `${stats.averageRarity}%`
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to load quick stats, using defaults:', error);
+        // Keep default values if API fails
+      }
+    };
+
+    loadQuickStats();
   }, []);
 
   // Filter domains based on search query
@@ -93,23 +119,8 @@ export default function SearchSection({ onDomainData }: SearchSectionProps) {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const data = await fetchDomainData(searchQuery);
-      if (data.domain) {
-        const score = calculateDomainScore(data.domain, data.stats || undefined, data.activities);
-        onDomainData({ ...data, score });
-      } else {
-        setError('Domain not found on Doma Protocol');
-      }
-    } catch (err) {
-      setError('Failed to fetch domain data');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirect to analytics page instead of using the old API
+    window.location.href = `/analytics?domain=${encodeURIComponent(searchQuery.trim())}`;
   };
 
   return (
@@ -120,7 +131,7 @@ export default function SearchSection({ onDomainData }: SearchSectionProps) {
             <div className="flex justify-center">
               <div className="w-full max-w-4xl">
                 {/* Search Header */}
-                <div className="text-center mb-8">
+                <div className="text-center" style={{ marginBottom: '10px' }}>
                   <h2 className="text-2xl font-bold text-white mb-3">Discover Domain Value</h2>
                   <p className="text-neutral-400">Enter any domain to get instant rarity scores and market insights</p>
                 </div>
@@ -176,8 +187,7 @@ export default function SearchSection({ onDomainData }: SearchSectionProps) {
                       </div>
                       <button
                         type="submit"
-                        disabled={isLoading}
-                        className="font-bold hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center space-x-2 cursor-pointer hover:scale-105 flex-shrink-0"
+                        className="font-bold hover:bg-neutral-100 transition-all duration-300 flex items-center space-x-2 cursor-pointer hover:scale-105 flex-shrink-0"
                         style={{ 
                           backgroundColor: '#ffffff',
                           color: '#0a0a0a',
@@ -190,17 +200,8 @@ export default function SearchSection({ onDomainData }: SearchSectionProps) {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        {isLoading ? (
-                          <>
-                            <div className="w-5 h-5 border-2 border-neutral-950/30 border-t-neutral-950 rounded-full animate-spin"></div>
-                            <span className="font-semibold text-sm tracking-wide">Analyzing...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Lightning size={20} weight="bold" />
-                            <span className="font-semibold text-sm tracking-wide">Analyze Now</span>
-                          </>
-                        )}
+                        <Lightning size={20} weight="bold" />
+                        <span className="font-semibold text-sm tracking-wide">Analyze Now</span>
                       </button>
                     </div>
                   </div>
@@ -252,54 +253,30 @@ export default function SearchSection({ onDomainData }: SearchSectionProps) {
                   )}
                 </AnimatePresence>
 
-                {/* Popular Domains Section */}
-                <div className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/50 rounded-2xl p-6 mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span>Trending Domains</span>
-                    </h3>
-                    <span className="text-sm text-neutral-500">Live Data</span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {['crypto.sol', 'nft.eth', 'web3.com', 'defi.sol', 'dao.eth', 'meta.com', 'ai.sol', 'btc.eth'].map((domain, index) => (
-                      <motion.button
-                        key={domain}
-                        onClick={() => setSearchQuery(domain)}
-                        className="bg-neutral-800/50 hover:bg-neutral-700/50 border border-neutral-700/50 hover:border-neutral-600 rounded-lg p-3 text-left transition-all duration-200 group"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-white font-medium text-sm">{domain}</span>
-                          <div className="flex items-center space-x-1">
-                            <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                            <span className="text-xs text-neutral-400 group-hover:text-neutral-300">
-                              {85 + index * 2}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-neutral-500 mt-1">
-                          ${(Math.random() * 50 + 10).toFixed(1)}K
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
+                {/* Trending Domains Section */}
+                <TrendingDomains 
+                  onDomainSelect={(domainName) => {
+                    console.log(`🔍 Setting search query to: ${domainName}`);
+                    setSearchQuery(domainName);
+                  }}
+                  limit={8}
+                  showStats={false}
+                  className="mb-6"
+                />
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-4 mb-8">
                   <div className="bg-neutral-900/30 border border-neutral-800/30 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-white mb-1">2.5M+</div>
+                    <div className="text-2xl font-bold text-white mb-1">{quickStats.totalDomains}</div>
                     <div className="text-sm text-neutral-400">Domains Analyzed</div>
                   </div>
                   <div className="bg-neutral-900/30 border border-neutral-800/30 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-white mb-1">$847M</div>
+                    <div className="text-2xl font-bold text-white mb-1">{quickStats.totalVolume}</div>
                     <div className="text-sm text-neutral-400">Total Volume</div>
                   </div>
                   <div className="bg-neutral-900/30 border border-neutral-800/30 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-white mb-1">98.5%</div>
-                    <div className="text-sm text-neutral-400">Accuracy Rate</div>
+                    <div className="text-2xl font-bold text-white mb-1">{quickStats.accuracyRate}</div>
+                    <div className="text-sm text-neutral-400">Avg Rarity</div>
                   </div>
                 </div>
                 

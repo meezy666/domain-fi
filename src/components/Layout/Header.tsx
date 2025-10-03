@@ -14,29 +14,46 @@ export default function Header() {
       <div className="w-full">
         <div className="flex items-center justify-between h-20">
           {/* Left side - Logo */}
-          <div className="flex items-center space-x-4" style={{ marginLeft: '15px' }}>
-                   <div className="w-6 h-7 bg-white rounded-lg flex items-center justify-center">
-                     <Lightning size={16} weight="bold" className="text-neutral-950" />
-                   </div>
+          <a 
+            href="/" 
+            className="flex items-center space-x-4 hover:opacity-80 transition-opacity duration-200 cursor-pointer" 
+            style={{ marginLeft: '15px' }}
+          >
+            <div className="w-6 h-7 bg-white rounded-lg flex items-center justify-center">
+              <Lightning size={16} weight="bold" className="text-neutral-950" />
+            </div>
             <h1 className="text-2xl font-semibold text-white" style={{ marginLeft: '2px' }}>
               DomainFi
             </h1>
-          </div>
+          </a>
           
           {/* Right side - Navigation */}
           <div className="flex items-center space-x-8" style={{ marginRight: '15px' }}>
             <nav className="hidden md:flex items-center space-x-10">
-              {['Analytics', 'Trending', 'Portfolio'].map((item) => (
-                <a 
-                  key={item}
-                  href="#" 
-                  className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"
-                  style={{ marginRight: '8px' }}
-                >
-                  {item}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
-                </a>
-              ))}
+              <a 
+                href="/analytics"
+                className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"
+                style={{ marginRight: '8px' }}
+              >
+                Analytics
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
+              </a>
+              <a 
+                href="/"
+                className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"
+                style={{ marginRight: '8px' }}
+              >
+                Trending
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
+              </a>
+              <a 
+                href="#"
+                className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"
+                style={{ marginRight: '8px' }}
+              >
+                Portfolio
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
+              </a>
             </nav>
             
                    <button 
