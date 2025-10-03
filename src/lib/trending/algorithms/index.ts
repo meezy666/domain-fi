@@ -1,4 +1,4 @@
-export { TrendingAlgorithm } from './types';
-export { DefaultTrendingAlgorithm } from './default';
-export { UltraSimpleTrendingAlgorithm } from './ultra-simple';
-export { RealDataTrendingAlgorithm } from './real-data-trending';
+export type { TrendingAlgorithm } from './types.js';
+export { DefaultTrendingAlgorithm } from './default.js';
+export { UltraSimpleTrendingAlgorithm } from './ultra-simple.js';
+export { RealDataTrendingAlgorithm } from './real-data-trending.js';

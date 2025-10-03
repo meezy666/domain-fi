@@ -197,12 +197,16 @@ export async function fetchTrendingDomains(
         // Execute the algorithm
         const selectedDomains = algorithm.execute(domainsWithRealData, config);
         console.log(`Algorithm returned ${selectedDomains.length} selected domains`);
-        console.log('Selected domains:', selectedDomains.map((d: { name: string; tokenizedAt: string }) => ({ name: d.name, tokenizedAt: d.tokenizedAt })));
+        console.log('Selected domains:', selectedDomains.map((d) => {
+          const typedD = d as { name: string; tokenizedAt: string };
+          return { name: typedD.name, tokenizedAt: typedD.tokenizedAt };
+        }));
 
         // Transform to trending domain format
-        const trendingDomains = selectedDomains.map((nameData: { name: string; tokenizedAt: string; activeOffersCount: number; listingPrice?: string; currency?: string; activityCount: number }) => 
-          createTrendingDomainFromNameData(nameData)
-        );
+        const trendingDomains = selectedDomains.map((nameData) => {
+          const typedNameData = nameData as { name: string; tokenizedAt: string; activeOffersCount: number; listingPrice?: string; currency?: string; activityCount: number };
+          return createTrendingDomainFromNameData(typedNameData);
+        });
 
         const filteredDomains = applyFilters(trendingDomains, filters);
         

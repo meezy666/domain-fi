@@ -207,16 +207,17 @@ export function getDomainStats(domains: TrendingDomain[]) {
  * Validate trending domain data
  */
 export function validateTrendingDomain(domain: unknown): domain is TrendingDomain {
+  const typedDomain = domain as Record<string, unknown>;
   return (
-    typeof (domain as any).id === 'string' &&
-    typeof (domain as any).name === 'string' &&
-    typeof (domain as any).rarityScore === 'number' &&
-    typeof (domain as any).marketValue === 'string' &&
-    typeof (domain as any).volume24h === 'string' &&
-    typeof (domain as any).priceChange24h === 'number' &&
-    typeof (domain as any).activityCount === 'number' &&
-    typeof (domain as any).lastActivity === 'string' &&
-    typeof (domain as any).isActive === 'boolean'
+    typeof typedDomain.id === 'string' &&
+    typeof typedDomain.name === 'string' &&
+    typeof typedDomain.rarityScore === 'number' &&
+    typeof typedDomain.marketValue === 'string' &&
+    typeof typedDomain.volume24h === 'string' &&
+    typeof typedDomain.priceChange24h === 'number' &&
+    typeof typedDomain.activityCount === 'number' &&
+    typeof typedDomain.lastActivity === 'string' &&
+    typeof typedDomain.isActive === 'boolean'
   );
 }
 

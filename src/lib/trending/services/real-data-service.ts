@@ -15,14 +15,6 @@ interface DomainResponse {
   };
 }
 
-interface ActivityResponse {
-  nameActivities: Array<{
-    name: string;
-    type: string;
-    createdAt: string;
-    price?: string;
-  }>;
-}
 
 export interface DomainWithRealData {
   name: string;
