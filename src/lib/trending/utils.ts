@@ -206,17 +206,17 @@ export function getDomainStats(domains: TrendingDomain[]) {
 /**
  * Validate trending domain data
  */
-export function validateTrendingDomain(domain: any): domain is TrendingDomain {
+export function validateTrendingDomain(domain: unknown): domain is TrendingDomain {
   return (
-    typeof domain.id === 'string' &&
-    typeof domain.name === 'string' &&
-    typeof domain.rarityScore === 'number' &&
-    typeof domain.marketValue === 'string' &&
-    typeof domain.volume24h === 'string' &&
-    typeof domain.priceChange24h === 'number' &&
-    typeof domain.activityCount === 'number' &&
-    typeof domain.lastActivity === 'string' &&
-    typeof domain.isActive === 'boolean'
+    typeof (domain as any).id === 'string' &&
+    typeof (domain as any).name === 'string' &&
+    typeof (domain as any).rarityScore === 'number' &&
+    typeof (domain as any).marketValue === 'string' &&
+    typeof (domain as any).volume24h === 'string' &&
+    typeof (domain as any).priceChange24h === 'number' &&
+    typeof (domain as any).activityCount === 'number' &&
+    typeof (domain as any).lastActivity === 'string' &&
+    typeof (domain as any).isActive === 'boolean'
   );
 }
 

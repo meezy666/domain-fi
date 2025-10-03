@@ -197,10 +197,10 @@ export async function fetchTrendingDomains(
         // Execute the algorithm
         const selectedDomains = algorithm.execute(domainsWithRealData, config);
         console.log(`Algorithm returned ${selectedDomains.length} selected domains`);
-        console.log('Selected domains:', selectedDomains.map((d: any) => ({ name: d.name, tokenizedAt: d.tokenizedAt })));
+        console.log('Selected domains:', selectedDomains.map((d: { name: string; tokenizedAt: string }) => ({ name: d.name, tokenizedAt: d.tokenizedAt })));
 
         // Transform to trending domain format
-        const trendingDomains = selectedDomains.map((nameData: any) => 
+        const trendingDomains = selectedDomains.map((nameData: { name: string; tokenizedAt: string; activeOffersCount: number; listingPrice?: string; currency?: string; activityCount: number }) => 
           createTrendingDomainFromNameData(nameData)
         );
 
@@ -249,7 +249,7 @@ export async function fetchTrendingDomains(
 function transformToTrendingDomain(
   domainName: string, 
   data: DomainData,
-  stats?: any
+  stats?: { totalDomains: number; totalVolume: number; averagePrice: number; salesCount?: number; lastSaleTimestamp?: number }
 ): TrendingDomain {
   const rarityScore = data.domain 
     ? calculateDomainRarityScore(data.domain, data.stats || undefined, data.activities).totalScore
@@ -267,7 +267,7 @@ function transformToTrendingDomain(
     volume24h: '$0', // No simulation
     priceChange24h: 0.0, // No simulation
     activityCount: salesCount + data.listings.length + data.offers.length,
-    lastActivity,
+    lastActivity: lastActivity.toString(),
     isActive: data.activities.length > 0 || data.listings.length > 0
   };
 }
@@ -275,18 +275,18 @@ function transformToTrendingDomain(
 /**
  * Create trending domain from statistics data
  */
-function createTrendingDomainFromStats(stat: any): TrendingDomain {
+function createTrendingDomainFromStats(stat: { name: string; tokenizedAt: string; activeOffersCount: number; id?: string; salesCount?: number; lastSaleTimestamp?: number }): TrendingDomain {
   const rarityScore = Math.floor(Math.random() * 40) + 60; // 60-99 range
   
   return {
-    id: stat.id,
-    name: stat.id,
+    id: stat.id || stat.name,
+    name: stat.name,
     rarityScore,
     marketValue: '$0', // No simulation
     volume24h: '$0', // No simulation
     priceChange24h: 0.0, // No simulation
     activityCount: stat.salesCount || 0,
-    lastActivity: stat.lastSaleTimestamp || new Date().toISOString(),
+    lastActivity: stat.lastSaleTimestamp ? new Date(stat.lastSaleTimestamp).toISOString() : stat.tokenizedAt,
     isActive: (stat.salesCount || 0) > 0
   };
 }
@@ -296,18 +296,18 @@ function createTrendingDomainFromStats(stat: any): TrendingDomain {
 /**
  * Create trending domain from name data with real data
  */
-function createTrendingDomainFromNameData(nameData: any): TrendingDomain {
+function createTrendingDomainFromNameData(nameData: { name: string; tokenizedAt: string; activeOffersCount: number; listingPrice?: string; currency?: string; activityCount: number }): TrendingDomain {
   // Calculate rarity score based on domain characteristics
   const rarityScore = calculateRarityScore(nameData.name);
   
   // Get market value from listing price or estimate
-  const marketValue = getMarketValue(nameData);
+  const marketValue = getMarketValue({ ...nameData, name: nameData.name });
   
   // Get volume from activity and offers
-  const volume24h = getVolume24h(nameData);
+  const volume24h = getVolume24h({ ...nameData, name: nameData.name, activeOffersCount: nameData.activeOffersCount });
   
   // Get price change (simulated for now)
-  const priceChange24h = getPriceChange24h(nameData);
+  const priceChange24h = getPriceChange24h({ ...nameData, name: nameData.name, activeOffersCount: nameData.activeOffersCount });
   
   // Get activity count
   const activityCount = nameData.activityCount || nameData.activeOffersCount || 1;
@@ -357,7 +357,7 @@ function calculateRarityScore(domainName: string): number {
 /**
  * Get market value from listing price or estimate
  */
-function getMarketValue(nameData: any): string {
+function getMarketValue(nameData: { listingPrice?: string; currency?: string; name: string }): string {
   if (nameData.listingPrice) {
     const priceInETH = parseFloat(nameData.listingPrice) / 1e18;
     const currency = nameData.currency || 'ETH';
@@ -387,11 +387,11 @@ function getMarketValue(nameData: any): string {
   else if (tld === 'sol') estimatedValue += 40;
   
   // Activity factor
-  const activityCount = nameData.activityCount || 1;
+  const activityCount = (nameData as any).activityCount || 1;
   estimatedValue += activityCount * 20;
   
   // Offers factor
-  const offersCount = nameData.activeOffersCount || 0;
+  const offersCount = (nameData as any).activeOffersCount || 0;
   estimatedValue += offersCount * 50;
   
   return `$${estimatedValue}`;
@@ -400,7 +400,7 @@ function getMarketValue(nameData: any): string {
 /**
  * Get 24h volume based on activity and offers
  */
-function getVolume24h(nameData: any): string {
+function getVolume24h(nameData: { activityCount: number; name: string; activeOffersCount: number }): string {
   const activityCount = nameData.activityCount || 1;
   const offersCount = nameData.activeOffersCount || 0;
   const domainName = nameData.name.toLowerCase();
@@ -439,7 +439,7 @@ function getVolume24h(nameData: any): string {
 /**
  * Get 24h price change (simulated based on real data)
  */
-function getPriceChange24h(nameData: any): number {
+function getPriceChange24h(nameData: { name: string; activityCount: number; activeOffersCount: number }): number {
   const activityCount = nameData.activityCount || 1;
   const offersCount = nameData.activeOffersCount || 0;
   const domainName = nameData.name.toLowerCase();
@@ -479,7 +479,7 @@ function getPriceChange24h(nameData: any): number {
 /**
  * Create trending domain from activity data
  */
-function createTrendingDomainFromActivity(activity: any): TrendingDomain {
+function createTrendingDomainFromActivity(activity: { name: string; type: string; createdAt: string; price?: string; timestamp?: string }): TrendingDomain {
   const rarityScore = Math.floor(Math.random() * 40) + 60; // 60-99 range
   
   return {
@@ -490,7 +490,7 @@ function createTrendingDomainFromActivity(activity: any): TrendingDomain {
     volume24h: '$0', // No simulation
     priceChange24h: 0.0, // No simulation
     activityCount: 1,
-    lastActivity: activity.timestamp,
+    lastActivity: activity.timestamp || activity.createdAt,
     isActive: true
   };
 }
@@ -589,13 +589,13 @@ export async function fetchTrendingStats(): Promise<TrendingStats> {
                // Try to fetch real stats from Doma Protocol
                const namesData = await graphqlClient.request(GET_ALL_NAMES_QUERY);
 
-               if ((namesData as any).names?.items) {
-                 const names = (namesData as any).names.items;
+               if ((namesData as { names?: { items: unknown[] } }).names?.items) {
+                 const names = (namesData as { names: { items: Array<{ activeOffersCount: number; tokenizedAt: string }> } }).names.items;
                  const totalDomains = names.length;
                  
                  // Calculate total volume from offers and tokenization
                  let totalVolume = 0;
-                 names.forEach((name: any) => {
+                 names.forEach((name) => {
                    const offerVolume = (name.activeOffersCount || 0) * 0.1;
                    const tokenizationBonus = name.tokenizedAt ? 0.05 : 0;
                    totalVolume += offerVolume + tokenizationBonus;

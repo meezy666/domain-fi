@@ -31,6 +31,46 @@ export interface TrendingData {
   }>;
 }
 
+interface GraphQLResponse {
+  recentListings: {
+    items: Array<{
+      name: string;
+      price: string;
+      currency: { symbol: string };
+      createdAt: string;
+    }>;
+  };
+  domainsWithOffers: {
+    items: Array<{
+      name: string;
+      tokenizedAt: string;
+      activeOffersCount: number;
+    }>;
+  };
+  listedDomains: {
+    items: Array<{
+      name: string;
+      tokenizedAt: string;
+      activeOffersCount: number;
+    }>;
+  };
+  names?: {
+    items: Array<{
+      name: string;
+      tokenizedAt: string;
+      activeOffersCount: number;
+    }>;
+  };
+  nameActivities?: {
+    items: Array<{
+      name: string;
+      type: string;
+      createdAt: string;
+      price?: string;
+    }>;
+  };
+}
+
 /**
  * Fetch trending domains efficiently with a single GraphQL query
  */
@@ -41,18 +81,18 @@ export async function fetchEfficientTrendingDomains(limit: number = 8): Promise<
     // Use the working 30-day trending query (no need for multiple batches since it gets recent data)
     const response = await graphqlClient.request(GET_TRENDING_DOMAINS_30_DAYS);
     
-    const data = response as any;
+    const data = response as GraphQLResponse;
     const recentListings = data.recentListings.items || [];
     const domainsWithOffers = data.domainsWithOffers.items || [];
     const listedDomains = data.listedDomains.items || [];
-    
+
     console.log(`✅ Got ${recentListings.length} recent listings, ${domainsWithOffers.length} domains with offers, ${listedDomains.length} listed domains`);
-    
+
     // Combine all domains and score by PRICE + ACTIVITY
     const allDomainsMap = new Map();
     
     // Add domains with recent listings (last 30 days) - these have both price and activity
-    recentListings.forEach((listing: any) => {
+    recentListings.forEach((listing) => {
       const priceInEth = parseFloat(listing.price) / 1e18;
       const activityScore = 3; // High activity for recent listings
       const priceScore = priceInEth; // Price in ETH
@@ -73,7 +113,7 @@ export async function fetchEfficientTrendingDomains(limit: number = 8): Promise<
     });
     
     // Add domains with offers (medium activity, no price data)
-    domainsWithOffers.forEach((domain: any) => {
+    domainsWithOffers.forEach((domain) => {
       if (!allDomainsMap.has(domain.name)) {
         const activityScore = 2; // Medium activity for offers
         const priceScore = 0; // No price data
@@ -95,7 +135,7 @@ export async function fetchEfficientTrendingDomains(limit: number = 8): Promise<
     });
     
     // Add other listed domains (lower activity, no price data)
-    listedDomains.forEach((domain: any) => {
+    listedDomains.forEach((domain) => {
       if (!allDomainsMap.has(domain.name)) {
         const activityScore = 1; // Lower activity for just being listed
         const priceScore = 0; // No price data
@@ -155,15 +195,15 @@ export async function getActiveDomains30Days(limit: number = 20): Promise<Effici
       skip: 0
     });
     
-    const data = response as any;
-    const domains = data.names.items || [];
-    const activities = data.nameActivities.items || [];
+    const data = response as GraphQLResponse;
+    const domains = data.names?.items || [];
+    const activities = data.nameActivities?.items || [];
     
     // Filter domains that have activity in the last 30 days
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
-    const activeDomains = domains.filter((domain: any) => {
-      const domainActivities = activities.filter((activity: any) => 
+    const activeDomains = domains.filter((domain: { name: string }) => {
+      const domainActivities = activities.filter((activity: { name: string; createdAt: string }) => 
         activity.name === domain.name && 
         new Date(activity.createdAt) >= thirtyDaysAgo
       );
@@ -172,7 +212,10 @@ export async function getActiveDomains30Days(limit: number = 20): Promise<Effici
     
     console.log(`✅ Found ${activeDomains.length} domains with recent activity`);
     
-    return activeDomains.slice(0, limit);
+    return activeDomains.slice(0, limit).map(domain => ({
+      ...domain,
+      activityCount: 1 // Add missing activityCount property
+    }));
     
   } catch (error) {
     console.error('❌ Failed to fetch active domains:', error);

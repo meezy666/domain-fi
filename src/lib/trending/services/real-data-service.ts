@@ -5,6 +5,25 @@
 
 import { graphqlClient } from '../../graphql';
 
+interface DomainResponse {
+  names: {
+    items: Array<{
+      name: string;
+      tokenizedAt: string;
+      activeOffersCount: number;
+    }>;
+  };
+}
+
+interface ActivityResponse {
+  nameActivities: Array<{
+    name: string;
+    type: string;
+    createdAt: string;
+    price?: string;
+  }>;
+}
+
 export interface DomainWithRealData {
   name: string;
   tokenizedAt: string;
@@ -63,7 +82,7 @@ export async function fetchDomainsWithRealData(limit: number = 100): Promise<Dom
       try {
         const skip = i * batchSize;
         const domainsResponse = await graphqlClient.request(domainsQuery, { skip });
-        const domains = (domainsResponse as any).names.items || [];
+        const domains = (domainsResponse as DomainResponse).names.items || [];
         
         if (domains.length === 0) {
           console.log(`No more domains at skip ${skip}, stopping`);
@@ -108,7 +127,7 @@ export async function fetchDomainsWithRealData(limit: number = 100): Promise<Dom
     console.log('Fetching listings...');
     const listingsResponse = await graphqlClient.request(listingsQuery);
     console.log('Listings response:', listingsResponse);
-    const listings = (listingsResponse as any).listings.items as ListingData[];
+    const listings = (listingsResponse as { listings: { items: ListingData[] } }).listings.items;
     console.log(`Got ${listings.length} listings`);
 
     // Step 3: Create domains with real data and get activity counts
@@ -127,7 +146,7 @@ export async function fetchDomainsWithRealData(limit: number = 100): Promise<Dom
         `;
 
         const activityResponse = await graphqlClient.request(activityQuery, { name: domain.name });
-        const activityCount = (activityResponse as any).nameActivities.totalCount || 1;
+        const activityCount = (activityResponse as { nameActivities: { totalCount: number } }).nameActivities.totalCount || 1;
 
         // Find listing price for this domain
         const listing = listings.find(l => l.name === domain.name);
@@ -185,7 +204,7 @@ export async function getTopDomainsByPrice(limit: number = 20): Promise<ListingD
     `;
 
     const response = await graphqlClient.request(query);
-    const listings = (response as any).listings.items as ListingData[];
+    const listings = (response as { listings: { items: ListingData[] } }).listings.items;
 
     // Sort by price (highest first)
     return listings.sort((a, b) => {

@@ -71,7 +71,7 @@ export async function fetchMostActiveDomains(limit: number = 8): Promise<Activit
         `;
         
         const response = await graphqlClient.request(query);
-        const data = response as any;
+        const data = response as { names: { items: unknown[] }; listings: { items: unknown[] } };
         
         allActivityData.domains.push(...(data.names.items || []));
         allActivityData.listings.push(...(data.listings.items || []));
@@ -191,20 +191,20 @@ export async function getRecentActivityDomains(limit: number = 20): Promise<Acti
     `;
     
     const response = await graphqlClient.request(query);
-    const data = response as any;
+    const data = response as { listings: { items: Array<{ name: string; price: string; currency: { symbol: string }; createdAt: string }> } };
     const listings = data.listings.items || [];
     
     // Filter listings from the last 30 days
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
-    const recentListings = listings.filter((listing: any) => 
+    const recentListings = listings.filter((listing) => 
       new Date(listing.createdAt) >= thirtyDaysAgo
     );
     
     console.log(`✅ Found ${recentListings.length} recent listings`);
     
     // Convert to activity-based domains
-    const activityDomains = recentListings.map((listing: any) => ({
+    const activityDomains = recentListings.map((listing) => ({
       name: listing.name,
       tokenizedAt: listing.createdAt, // Use listing date as proxy
       activeOffersCount: 0,

@@ -26,7 +26,7 @@ export interface TrendingAlgorithmConfig {
 export interface TrendingAlgorithm {
   name: string;
   description: string;
-  execute(domains: any[], config: TrendingAlgorithmConfig): any[];
+  execute(domains: unknown[], config: TrendingAlgorithmConfig): unknown[];
 }
 
 export interface DomainScore {

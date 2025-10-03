@@ -9,7 +9,7 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
   name = 'Real Data Trending';
   description = 'Uses real listing prices, activity counts, and offers from Doma API';
 
-  execute(domains: any[], config: TrendingAlgorithmConfig): any[] {
+  execute(domains: unknown[], config: TrendingAlgorithmConfig): unknown[] {
     // Step 1: Filter domains within 30 days
     const recentDomains = this.filterRecentDomains(domains);
 
@@ -26,12 +26,13 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
   /**
    * Filter domains with better variety and less restrictive filtering
    */
-  private filterRecentDomains(domains: any[]): any[] {
+  private filterRecentDomains(domains: unknown[]): unknown[] {
     console.log(`Filtering ${domains.length} domains for variety...`);
     
     // Filter domains with valid data
-    const validDomains = domains.filter(domain => {
-      return domain.tokenizedAt && domain.name;
+    const validDomains = domains.filter((domain) => {
+      const typedDomain = domain as { tokenizedAt: string; name: string };
+      return typedDomain.tokenizedAt && typedDomain.name;
     });
 
     console.log(`Valid domains: ${validDomains.length}`);
@@ -44,13 +45,15 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
       const thirtyDaysAgo = now - (30 * dayMs);
 
       // Categorize domains by age
-      const recentDomains = validDomains.filter(domain => {
-        const tokenizedAt = new Date(domain.tokenizedAt).getTime();
+      const recentDomains = validDomains.filter((domain) => {
+        const typedDomain = domain as { tokenizedAt: string };
+        const tokenizedAt = new Date(typedDomain.tokenizedAt).getTime();
         return tokenizedAt >= sevenDaysAgo;
       });
 
-      const olderDomains = validDomains.filter(domain => {
-        const tokenizedAt = new Date(domain.tokenizedAt).getTime();
+      const olderDomains = validDomains.filter((domain) => {
+        const typedDomain = domain as { tokenizedAt: string };
+        const tokenizedAt = new Date(typedDomain.tokenizedAt).getTime();
         return tokenizedAt < sevenDaysAgo;
       });
 
@@ -75,18 +78,19 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
    * Calculate trending score for each domain
    * Score = (Price Score × 0.4) + (Activity Score × 0.3) + (Offers Score × 0.3)
    */
-  private calculateTrendingScores(domains: any[]): any[] {
-    return domains.map(domain => {
-      const domainName = domain.name.toLowerCase();
+  private calculateTrendingScores(domains: unknown[]): unknown[] {
+    return domains.map((domain) => {
+      const typedDomain = domain as { name: string; listingPrice?: string; activeOffersCount: number; tokenizedAt: string; activityCount?: number };
+      const domainName = typedDomain.name.toLowerCase();
       const tld = domainName.split('.').pop();
       const nameWithoutTLD = domainName.split('.')[0];
 
       // Get base data
-      const activeOffersCount = domain.activeOffersCount || 0;
-      const activityCount = domain.activityCount || 1; // Default to 1 if no activity data
+      const activeOffersCount = typedDomain.activeOffersCount || 0;
+      const activityCount = typedDomain.activityCount || 1; // Default to 1 if no activity data
 
       // Calculate Price Score (0-100)
-      const priceScore = this.calculatePriceScore(domain);
+      const priceScore = this.calculatePriceScore(typedDomain);
 
       // Calculate Activity Score (0-100)
       const activityScore = this.calculateActivityScore(activityCount);
@@ -95,7 +99,7 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
       const offersScore = this.calculateOffersScore(activeOffersCount);
 
       // Calculate Domain Characteristics Score (0-100)
-      const characteristicsScore = this.calculateCharacteristicsScore(nameWithoutTLD, tld);
+      const characteristicsScore = this.calculateCharacteristicsScore(nameWithoutTLD, tld || '');
 
       // Calculate final trending score with more emphasis on domain characteristics
       // Since all domains are recent, we'll weight domain quality more heavily
@@ -107,14 +111,16 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
       );
 
       return {
-        ...domain,
+        name: typedDomain.name,
+        listingPrice: typedDomain.listingPrice,
+        activeOffersCount: typedDomain.activeOffersCount,
+        tokenizedAt: typedDomain.tokenizedAt,
         trendingScore,
         priceScore,
         activityScore,
         offersScore,
         characteristicsScore,
-        activityCount,
-        activeOffersCount
+        activityCount
       };
     });
   }
@@ -122,7 +128,7 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
   /**
    * Calculate price score based on listing price
    */
-  private calculatePriceScore(domain: any): number {
+  private calculatePriceScore(domain: { listingPrice?: string; name: string }): number {
     // If domain has a listing price, use it
     if (domain.listingPrice) {
       const priceInETH = parseFloat(domain.listingPrice) / 1e18; // Convert from wei
@@ -141,7 +147,7 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
   /**
    * Estimate price score based on domain characteristics
    */
-  private estimatePriceScore(domain: any): number {
+  private estimatePriceScore(domain: { name: string }): number {
     const domainName = domain.name.toLowerCase();
     const tld = domainName.split('.').pop();
     const nameWithoutTLD = domainName.split('.')[0];
@@ -228,20 +234,22 @@ export class RealDataTrendingAlgorithm implements TrendingAlgorithm {
   /**
    * Sort domains by trending score
    */
-  private sortByTrendingScore(domains: any[]): any[] {
+  private sortByTrendingScore(domains: unknown[]): unknown[] {
     return domains.sort((a, b) => {
+      const typedA = a as { trendingScore: number; tokenizedAt: string; activityCount?: number; activeOffersCount?: number };
+      const typedB = b as { trendingScore: number; tokenizedAt: string; activityCount?: number; activeOffersCount?: number };
       // Primary sort: trending score
-      if (b.trendingScore !== a.trendingScore) {
-        return b.trendingScore - a.trendingScore;
+      if (typedB.trendingScore !== typedA.trendingScore) {
+        return typedB.trendingScore - typedA.trendingScore;
       }
       
       // Secondary sort: activity count
-      if (b.activityCount !== a.activityCount) {
-        return b.activityCount - a.activityCount;
+      if ((typedB.activityCount || 0) !== (typedA.activityCount || 0)) {
+        return (typedB.activityCount || 0) - (typedA.activityCount || 0);
       }
       
       // Tertiary sort: active offers count
-      return b.activeOffersCount - a.activeOffersCount;
+      return (typedB.activeOffersCount || 0) - (typedA.activeOffersCount || 0);
     });
   }
 }
