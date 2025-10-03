@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Lightning, Wallet } from 'phosphor-react';
+import Link from 'next/link';
 
 export default function Header() {
   return (
@@ -14,7 +15,7 @@ export default function Header() {
       <div className="w-full">
         <div className="flex items-center justify-between h-20">
           {/* Left side - Logo */}
-          <a 
+          <Link 
             href="/" 
             className="flex items-center space-x-4 hover:opacity-80 transition-opacity duration-200 cursor-pointer" 
             style={{ marginLeft: '15px' }}
@@ -25,27 +26,27 @@ export default function Header() {
             <h1 className="text-2xl font-semibold text-white" style={{ marginLeft: '2px' }}>
               DomainFi
             </h1>
-          </a>
+          </Link>
           
           {/* Right side - Navigation */}
           <div className="flex items-center space-x-8" style={{ marginRight: '15px' }}>
             <nav className="hidden md:flex items-center space-x-10">
-              <a 
+              <Link 
                 href="/analytics"
                 className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"
                 style={{ marginRight: '8px' }}
               >
                 Analytics
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
-              </a>
-              <a 
+              </Link>
+              <Link 
                 href="/"
                 className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"
                 style={{ marginRight: '8px' }}
               >
                 Trending
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
-              </a>
+              </Link>
               <a 
                 href="#"
                 className="text-white hover:text-neutral-200 font-semibold transition-all duration-500 ease-out relative group"

@@ -8,7 +8,35 @@ import { TrendingDomains } from '@/components/TrendingDomains';
 import { fetchTrendingStats } from '@/lib/trending';
 
 interface SearchSectionProps {
-  onDomainData: (data: any) => void;
+  onDomainData: (data: {
+    domain: {
+      id: string;
+      name: string;
+      createdAt?: string;
+      labelhash?: string;
+    };
+    score: {
+      totalScore: number;
+      breakdown?: Record<string, number>;
+      factors?: Record<string, number>;
+    };
+    stats: {
+      totalVolume: number;
+      averagePrice: number;
+      salesCount?: number;
+    };
+    listings: Array<{
+      price: string;
+      currency: string;
+    }>;
+    rarityScore: number;
+    marketValue: string;
+    volume24h: string;
+    priceChange24h: number;
+    activityCount: number;
+    lastActivity: string;
+    isActive: boolean;
+  }) => void;
 }
 
 export default function SearchSection({ onDomainData }: SearchSectionProps) {

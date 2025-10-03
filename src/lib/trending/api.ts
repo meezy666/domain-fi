@@ -391,11 +391,11 @@ function getMarketValue(nameData: { listingPrice?: string; currency?: string; na
   else if (tld === 'sol') estimatedValue += 40;
   
   // Activity factor
-  const activityCount = (nameData as any).activityCount || 1;
+  const activityCount = (nameData as Record<string, unknown>).activityCount as number || 1;
   estimatedValue += activityCount * 20;
   
   // Offers factor
-  const offersCount = (nameData as any).activeOffersCount || 0;
+  const offersCount = (nameData as Record<string, unknown>).activeOffersCount as number || 0;
   estimatedValue += offersCount * 50;
   
   return `$${estimatedValue}`;

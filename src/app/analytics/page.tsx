@@ -457,7 +457,7 @@ export default function AnalyticsPage() {
               <div className="mt-6">
                 <h4 className="text-sm font-medium text-neutral-300 mb-3">Recent Activities</h4>
                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {domainData.recentActivities.slice(0, 5).map((activity: any, index: number) => (
+                  {domainData.recentActivities.slice(0, 5).map((activity: { type: string; date: string; price?: number }, index: number) => (
                     <div key={index} className="flex items-center justify-between py-2 px-3 bg-neutral-800/30 rounded-lg">
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${

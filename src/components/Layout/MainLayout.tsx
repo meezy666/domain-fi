@@ -8,7 +8,35 @@ import DomainResults from './DomainResults';
 import Features from './Features';
 
 export default function MainLayout() {
-  const [domainData, setDomainData] = useState<any>(null);
+  const [domainData, setDomainData] = useState<{
+    domain: {
+      id: string;
+      name: string;
+      createdAt?: string;
+      labelhash?: string;
+    };
+    score: {
+      totalScore: number;
+      breakdown?: Record<string, number>;
+      factors?: Record<string, number>;
+    };
+    stats: {
+      totalVolume: number;
+      averagePrice: number;
+      salesCount?: number;
+    };
+    listings: Array<{
+      price: string;
+      currency: string;
+    }>;
+    rarityScore: number;
+    marketValue: string;
+    volume24h: string;
+    priceChange24h: number;
+    activityCount: number;
+    lastActivity: string;
+    isActive: boolean;
+  } | null>(null);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white w-full">
@@ -29,7 +57,7 @@ export default function MainLayout() {
         <SearchSection onDomainData={setDomainData} />
 
         {/* Domain Results */}
-        <DomainResults domainData={domainData} />
+        {domainData && <DomainResults domainData={domainData} />}
 
         {/* Features Section */}
         <Features />

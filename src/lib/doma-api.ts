@@ -36,11 +36,11 @@ export async function fetchDomainData(domainName: string): Promise<DomainData> {
     ]);
 
     return {
-      domain: domainResult.status === 'fulfilled' ? domainResult.value.name : null,
-      stats: statsResult.status === 'fulfilled' ? statsResult.value.nameStatistics : null,
-      listings: listingsOffersResult.status === 'fulfilled' ? listingsOffersResult.value.listings || [] : [],
-      offers: listingsOffersResult.status === 'fulfilled' ? listingsOffersResult.value.offers || [] : [],
-      activities: activitiesResult.status === 'fulfilled' ? activitiesResult.value.nameActivities || [] : []
+      domain: domainResult.status === 'fulfilled' ? (domainResult.value as { name: string }).name as unknown as Domain : null,
+      stats: statsResult.status === 'fulfilled' ? (statsResult.value as { nameStatistics: unknown }).nameStatistics as unknown as DomainStats : null,
+      listings: listingsOffersResult.status === 'fulfilled' ? (listingsOffersResult.value as { listings?: unknown[] }).listings as unknown as Listing[] || [] : [],
+      offers: listingsOffersResult.status === 'fulfilled' ? (listingsOffersResult.value as { offers?: unknown[] }).offers as unknown as Offer[] || [] : [],
+      activities: activitiesResult.status === 'fulfilled' ? (activitiesResult.value as { nameActivities?: unknown[] }).nameActivities as unknown as DomainActivity[] || [] : []
     };
   } catch (error) {
     console.error('Error fetching domain data:', error);

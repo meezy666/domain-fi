@@ -5,7 +5,35 @@ import { Globe, ChartBar, TrendUp } from 'phosphor-react';
 import { getScoreInterpretation, getScoreColor } from '@/lib/scoring';
 
 interface DomainResultsProps {
-  domainData: any;
+  domainData: {
+    domain: {
+      id: string;
+      name: string;
+      createdAt?: string;
+      labelhash?: string;
+    };
+    score: {
+      totalScore: number;
+      breakdown?: Record<string, number>;
+      factors?: Record<string, number>;
+    };
+    stats: {
+      totalVolume: number;
+      averagePrice: number;
+      salesCount?: number;
+    };
+    listings: Array<{
+      price: string;
+      currency: string;
+    }>;
+    rarityScore: number;
+    marketValue: string;
+    volume24h: string;
+    priceChange24h: number;
+    activityCount: number;
+    lastActivity: string;
+    isActive: boolean;
+  };
 }
 
 export default function DomainResults({ domainData }: DomainResultsProps) {
@@ -49,7 +77,7 @@ export default function DomainResults({ domainData }: DomainResultsProps) {
 
                   {/* Score Breakdown */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                    {Object.entries(domainData.score.breakdown).map(([factor, score]) => (
+                    {domainData.score.breakdown && Object.entries(domainData.score.breakdown).map(([factor, score]) => (
                       <div key={factor} className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
                         <div className="text-sm font-medium text-neutral-400 capitalize mb-1">
                           {factor}
@@ -58,7 +86,7 @@ export default function DomainResults({ domainData }: DomainResultsProps) {
                           {score as number}/100
                         </div>
                         <div className="text-xs text-neutral-500">
-                          {domainData.score.factors[factor as keyof typeof domainData.score.factors]}
+                          {domainData.score.factors?.[factor as keyof typeof domainData.score.factors]}
                         </div>
                       </div>
                     ))}
@@ -75,13 +103,13 @@ export default function DomainResults({ domainData }: DomainResultsProps) {
                         <div className="flex justify-between items-center">
                           <span className="text-neutral-400">Created:</span>
                           <span className="text-white font-medium">
-                            {new Date(domainData.domain.createdAt).toLocaleDateString()}
+                            {domainData.domain.createdAt ? new Date(domainData.domain.createdAt).toLocaleDateString() : 'Unknown'}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-neutral-400">Label Hash:</span>
                           <span className="text-white font-mono text-xs bg-neutral-700 px-2 py-1 rounded">
-                            {domainData.domain.labelhash.slice(0, 8)}...
+                            {domainData.domain.labelhash ? domainData.domain.labelhash.slice(0, 8) + '...' : 'Unknown'}
                           </span>
                         </div>
                       </div>

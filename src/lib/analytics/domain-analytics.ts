@@ -115,7 +115,7 @@ async function fetchBasicDomainData(domainName: string) {
   
   try {
     const response = await graphqlClient.request(query, { name: domainName });
-    const domain = (response as any).names.items[0];
+    const domain = (response as { names: { items: Array<{ name: string; tokenizedAt: string; activeOffersCount: number }> } }).names.items[0];
     
     console.log(`📋 GraphQL response for ${domainName}:`, response);
     console.log(`📋 Domain found:`, domain);
@@ -176,7 +176,7 @@ async function fetchMarketData(domainName: string) {
   try {
     const sld = domainName.split('.')[0]; // Extract second-level domain
     const response = await graphqlClient.request(query, { sld });
-    const listings = (response as any).listings.items || [];
+    const listings = (response as { listings: { items: Array<{ name: string; price: string; currency: { symbol: string }; createdAt: string }> } }).listings.items || [];
     
     return {
       listings,
